@@ -81,6 +81,13 @@ export default function LoginForm() {
                         </>
                     )}
                 </div>
+
+                <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-500">
+                        Don't have an account? <a href="/signup" className="text-blue-500 underline">Click here to sign
+                        up</a>.
+                    </p>
+                </div>
             </div>
         </form>
     );
