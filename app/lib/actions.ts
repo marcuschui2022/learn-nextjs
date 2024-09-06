@@ -7,6 +7,7 @@ import {revalidatePath} from "next/cache";
 import {redirect} from "next/navigation";
 import {signIn} from "@/auth";
 import {AuthError} from "next-auth";
+import bcrypt from "bcrypt";
 
 const FormSchema = z.object({
     id: z.string(),
@@ -135,4 +136,55 @@ export async function authenticate(
         }
         throw error;
     }
+}
+
+const SignUpSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+});
+
+export type SignUpState = {
+    errors?: {
+        email?: string[];
+        password?: string[];
+    };
+    message?: string | null;
+};
+
+
+export async function signup(prevState: SignUpState, formData: FormData) {
+    const validatedFields = SignUpSchema.safeParse({
+        email: formData.get('email'),
+        password: formData.get('password'),
+    });
+
+    // If form validation fails, return errors early. Otherwise, continue.
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Invalid email or password.',
+        };
+    }
+
+    const {email, password} = validatedFields.data;
+
+    try {
+        // Hash the password before storing it
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert the new user into the database
+        await sql`
+            INSERT INTO users (name, email, password, role)
+            VALUES (${email}, ${email}, ${hashedPassword}, 'user')
+        `.execute(db);
+
+    } catch (err) {
+        console.error('Database Error:', err);
+        return {
+            message: 'Database Error: Failed to Create User.',
+        };
+    }
+
+    // Redirect to login page after successful signup
+    redirect('/login');
 }
