@@ -10,7 +10,7 @@ export const authConfig = {
             const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
             if (isOnDashboard) {
                 return isLoggedIn;
-                 // Redirect unauthenticated users to login page
+                // Redirect unauthenticated users to login page
             } else if (isLoggedIn) {
                 return Response.redirect(new URL('/dashboard', nextUrl));
             }
@@ -30,4 +30,9 @@ export const authConfig = {
         },
     },
     providers: [], // Add providers with an empty array for now
+    logger: {
+        error(code, ...message) {
+            if (code.name !== 'CredentialsSignin') console.error(code, ...message);
+        },
+    },
 } satisfies NextAuthConfig;
